@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+      <% include ../partials/head %>
+</head>
+   <script>
+    var socket = io("localhost:3000");
+      socket.on("welcome",function(data){
+         document.getElementById("welcome").innerHTML = "Hello " + data;
+      })
+      socket.on("ledStatus",function(data){
+         if(data=="ON") document.getElementById("LED").checked = true;
+         else document.getElementById("LED").checked = false;
+      })
+      socket.on("brightness",function(data){
+         document.getElementById("PWM").value = data;
+      })
+
+      function checkLED()
+      {
+         var checkbox = document.getElementById("LED");
+         if (checkbox.checked != true)
+         {
+            var msg = { id : "esp", status: "OFF"};
+            socket.emit("ledStatus", JSON.stringify(msg));
+         }
+         else
+         {
+            var msg = { id : "esp", status: "ON"};
+            socket.emit("ledStatus", JSON.stringify(msg));
+         }
+      }
+      function changePWM() {
+         var x = document.getElementById("PWM").value;
+         socket.emit("brightness", x);
+      }
+   </script>
+<body>
+   <div class="container">
+      <p id="welcome" style="text-align: right"></p> 
+      <table class="table table-bordered">
+         <thead>
+            <tr>
+               <th colspan="4" style="text-align: center;">MANG CAM BIEN</th>
+            </tr>
+         </thead>
+         <tbody>
+            <tr>
+               <td style="text-align: center">Temperature: <%= temp[0]%>°C</td>
+               <td style="text-align: center">Humidity: <%= hum[0]%>%</td>
+               <td>LED <input type="checkbox" name="button" id="LED" onclick="checkLED()" ></br></td>
+               <td>Brightness <input type="range" min="0" max="255" value="125" id="PWM" oninput="changePWM()"></td>
+            </tr>
+            <tr>
+               <td colspan="4">
+                    <div id="container" style="min-width: 1000px; height: 400px; margin: 0 auto"></div>
+                    <div class="card">
+                    <script>
+                        Highcharts.chart('container', {
+                            chart: {
+                                zoomType: 'xy'
+                            },
+                            title: {
+                                text: 'Temperature and Humidity'
+                            },
+                            subtitle: {
+                                text: 'Source: LantanNTL'
+                            },
+                            xAxis: [{
+                                categories: ['<%= time[0]%>','<%= time[1]%>','<%= time[2]%>','<%= time[3]%>','<%= time[4]%>','<%= time[5]%>','<%= time[6]%>'],
+                                crosshair: true
+                            }],
+                            yAxis: [{ // Primary yAxis
+                                labels: {
+                                    format: '{value}°C',
+                                    style: {
+                                        color: Highcharts.getOptions().colors[1]
+                                    }
+                                },
+                                title: {
+                                    text: 'Temperature',
+                                    style: {
+                                        color: Highcharts.getOptions().colors[1]
+                                    }
+                                }
+                            }, { // Secondary yAxis
+                                title: {
+                                    text: 'Humidity',
+                                    style: {
+                                        color: Highcharts.getOptions().colors[0]
+                                    }
+                                },
+                                labels: {
+                                    format: '{value} %',
+                                    style: {
+                                        color: Highcharts.getOptions().colors[0]
+                                    }
+                                },
+                                opposite: true
+                            }],
+                            tooltip: {
+                                shared: true
+                            },
+                            legend: {
+                                layout: 'vertical',
+                                align: 'left',
+                                x: 120,
+                                verticalAlign: 'top',
+                                y: 100,
+                                floating: true,
+                                backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || 'rgba(255,255,255,0.25)'
+                            },
+                            series: [{
+                                name: 'Humidity',
+                                type: 'column',
+                                yAxis: 1,
+                                data: [<%= hum%>],
+                                tooltip: {
+                                    valueSuffix: ' %'
+                                }
+
+                            }, {
+                                name: 'Temperature',
+                                type: 'spline',
+                                data: [<%= temp%>],
+                                tooltip: {
+                                    valueSuffix: '°C'
+                                }
+                            }]
+                        });
+                    </script>
+                    </div>
+               </td>
+            </tr>
+         </tbody>
+      </table>
+   </div>
+
+</body>
+</html>

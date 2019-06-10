@@ -1,0 +1,52 @@
+body{
+	background: #def2f2;
+}
+td{
+    width: 25%;
+} 
+#LED{
+	float: right;
+}
+#PWM{
+	float: right;
+}
+.img{
+	width: 200px;
+	height: 200px;
+	margin: 50px 0px 20px 200px;
+}
+.img1{
+	width: 200px;
+	height: 200px;
+	margin: 50px;
+}
+input[type="checkbox"]{
+	position: relative;
+	width: 60px;
+	height: 30px;
+	-webkit-appearance: none;
+	outline: none;
+	border-radius: 20px;
+	transition: .5s;
+	background: #c6c6c6;
+}
+input:checked[type=checkbox]{
+	background: #03a9f4;
+}
+input[type="checkbox"]:before{
+	content: '';
+	position: absolute;
+	width: 30px;
+	height: 30px;
+	border-radius: 20px;
+	top: 0;
+	left: 0;
+	transition: .5s;
+	background: #fff;
+}
+input:checked[type="checkbox"]:before{	
+	left: 30px;
+}
+.card{
+	margin: 50px;
+}

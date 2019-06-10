@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Ngo Thi La</title>
+	<link rel="stylesheet" href="css/main.css">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+   	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+   	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+   	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+   	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<script src="https://code.highcharts.com/highcharts.js"></script>
+  	<script src="https://code.highcharts.com/modules/exporting.js"></script>
+  	<script src="https://code.highcharts.com/modules/export-data.js"></script>
+  	<script src="/javascripts/pureknob.js" type="text/javascript"></script>
+  	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.0/Chart.bundle.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+</head>
+
+<body>
+	<div class="container">
+        <p id="welcome" style="text-align: right"></p>
+        <div id="main">
+            <div id="head">
+                <h3> MANG CAM BIEN</h3>
+            </div>
+            <div id="temperature">
+                <h3> Temperature</h3>
+                <h3 id="temp" style="text-align: center;"></h3>
+                <img src="http://thuthuatphanmem.vn/uploads/2015/07/17/kiem-tra-nhiet-do-may-tinh-cpu-vga-card-hinh-hdd-o-cung_020009.png" class="img" alt="Temp">
+            </div>
+            <div id="humidity">
+                <h3> Humidity </h3>
+                <h3 id="hum" style="text-align: center;"></h3>
+                <img src="https://scontent.fhan2-3.fna.fbcdn.net/v/t1.15752-9/59286039_436196657143878_4799059378374180864_n.jpg?_nc_cat=107&_nc_oc=AQlh2-ZO684GRm-0wxj2CIes7Gdb1J7drmNxc2q4lCyGsMmTu2o1FfHypiJ5zlUuG3MIwDbZImwUFr3531aBExg_&_nc_ht=scontent.fhan2-3.fna&oh=22ec4e3227c06385be9595c0645f3840&oe=5D652159" class="img" alt="Hum">
+            </div>
+            <div id="windspeed">
+                <h3> Windspeed </h3>
+                <h3 id="wind" style="text-align: center;"></h3>
+                <img src="http://www.viwico.vn/media/k2/items/cache/ffee2447b152494b43d9816faaea83c8_XL.jpg" class="img" alt="Wind">
+            </div>
+            <div id="w_status">
+                <h3> W_Status </h3>
+                <h3 id="status" style="text-align: center;"></h3>
+            </div>
+            <div id="chart">
+                <canvas id="mixed-chart" width="800" height="400"></canvas> 
+                <script>
+                    var ctx = document.getElementById('mixed-chart').getContext('2d');
+                    var chart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: [],
+                            datasets: [
+                            {
+                                label: "Temperature",
+                                type: "line",
+                                borderColor: "#FF0000",
+                                data: [],
+                                fill: false
+                            }, 
+                            {
+                                label: "Humidity",
+                                type: "bar",
+                                backgroundColor: "#40E0D0",
+                                data: [],
+                            }]
+                        },
+                        options: {
+                            title: {
+                                display: true,
+                                text: 'Average Temperature & Humidity'
+                            },
+                            legend: { display: false }
+                        }
+                    });
+     
+                    socket.on('mqtt_data', function (data) {
+                        var length = chart.data.labels.length
+                        if (length >= 7) {
+                            chart.data.labels.shift(); 
+                            chart.data.datasets[0].data.shift(); 
+                            chart.data.datasets[1].data.shift(); 
+                        }
+                        chart.data.labels.push(data.Time)
+                        chart.data.datasets[0].data.push(data.Temperature)
+                        chart.data.datasets[1].data.push(data.Humidity)
+                        chart.update()
+                    })
+                    </script>
+            </div>
+            <div id="button">
+                 <img src="https://scontent.fhan2-4.fna.fbcdn.net/v/t1.15752-9/59295353_2375558549329583_3253747136164003840_n.jpg?_nc_cat=110&_nc_oc=AQnRTARIIJojGdv_jOHQ2zIziaj1MK6Im_XOSL7BTF6rp9fJEOahqlpNlr9Xvzje5A3y-TydHE3D7fSzfTmtzW8o&_nc_ht=scontent.fhan2-4.fna&oh=fe346efd17863207bd944b99ddb89935&oe=5D65FECE" class="img1" alt="LED">
+                <p>LED <input type="checkbox" name="button" id="LED" onclick="checkLED()" ></br></p>
+                <p>Brightness<input type="range" min="0" max="1023" value="50" id="PWM" oninput="changePWM()"></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

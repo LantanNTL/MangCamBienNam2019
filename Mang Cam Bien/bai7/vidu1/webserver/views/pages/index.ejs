@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ngo Thi La</title>
+    <% include ../partials/head %>
+</head>
+   <script>
+        var socket = io("localhost:3000");
+        socket.on("welcome",function(data){
+            document.getElementById("welcome").innerHTML = "Hello " + data;
+        })
+        
+        socket.on("mqtt_data",function(data){
+            document.getElementById("temp").innerHTML = data.Temperature + "°C";
+            if(data.Temperature < 30){
+                document.getElementById("temp").style.color = "red";
+            }
+            if(data.Temperature >= 30 && data.Temperature < 35){
+                document.getElementById("temp").style.color = "blue";
+            }
+            if(data.Temperature >= 35){
+                document.getElementById("temp").style.color = "orange";
+            }
+        })
+        socket.on("mqtt_data",function(data){
+            document.getElementById("hum").innerHTML = data.Humidity + "%";
+            if(data.Humidity < 80){
+                document.getElementById("hum").style.color = "red";
+            }
+            if(data.Humidity > 80 && data.Humidity <= 100){
+                document.getElementById("hum").style.color = "blue";
+            }
+        })
+        socket.on("mqtt_data",function(data){
+            document.getElementById("wind").innerHTML = data.Windspeed + "m/s";
+            if(data.Windspeed < 100){
+                document.getElementById("wind").style.color = "red";
+            }
+            if(data.Windspeed >= 100 && data.Windspeed <= 200){
+                document.getElementById("wind").style.color = "blue";
+            }
+        })
+        socket.on("mqtt_data",function(data){
+            document.getElementById("status").innerHTML = data.W_status;
+        })
+
+        socket.on("ledStatus",function(data){
+            if(data=="ON") document.getElementById("LED").checked = true;
+            else document.getElementById("LED").checked = false;
+        })
+        socket.on("brightness",function(data){
+            document.getElementById("PWM").value = data;
+        })
+
+        function checkLED()
+        {
+            var checkbox = document.getElementById("LED");
+            if (checkbox.checked != true)
+            {
+                var msg = { id : "esp", status: "OFF"};
+                socket.emit("ledStatus", JSON.stringify(msg));
+            }
+            else
+            {
+                var msg = { id : "esp", status: "ON"};
+                socket.emit("ledStatus", JSON.stringify(msg));
+            }
+        }
+        function changePWM() {
+            var x = document.getElementById("PWM").value;
+            socket.emit("brightness", x);
+        }
+
+    </script>
+<body>
+    <div class="container">
+        <p id="welcome" style="text-align: right"></p>
+        <div id="main">
+            <div id="head">
+                <h3> MANG CAM BIEN</h3>
+            </div>
+            <div id="temperature">
+                <h3> Temperature</h3>
+                <h3 id="temp" style="text-align: center;"></h3>
+                <img src="http://thuthuatphanmem.vn/uploads/2015/07/17/kiem-tra-nhiet-do-may-tinh-cpu-vga-card-hinh-hdd-o-cung_020009.png" class="img" alt="Temp">
+            </div>
+            <div id="humidity">
+                <h3> Humidity </h3>
+                <h3 id="hum" style="text-align: center;"></h3>
+                <img src="https://scontent.fhan2-3.fna.fbcdn.net/v/t1.15752-9/59286039_436196657143878_4799059378374180864_n.jpg?_nc_cat=107&_nc_oc=AQlh2-ZO684GRm-0wxj2CIes7Gdb1J7drmNxc2q4lCyGsMmTu2o1FfHypiJ5zlUuG3MIwDbZImwUFr3531aBExg_&_nc_ht=scontent.fhan2-3.fna&oh=22ec4e3227c06385be9595c0645f3840&oe=5D652159" class="img" alt="Hum">
+            </div>
+            <div id="windspeed">
+                <h3> Windspeed </h3>
+                <h3 id="wind" style="text-align: center;"></h3>
+                <img src="http://www.viwico.vn/media/k2/items/cache/ffee2447b152494b43d9816faaea83c8_XL.jpg" class="img" alt="Wind">
+            </div>
+            <div id="w_status">
+                <h3> W_Status </h3>
+                <h3 id="status" style="text-align: center;"></h3>
+            </div>
+            <div id="chart">
+                <canvas id="mixed-chart" width="800" height="400"></canvas> 
+                <script>
+                    var ctx = document.getElementById('mixed-chart').getContext('2d');
+                    var chart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: [],
+                            datasets: [
+                            {
+                                label: "Temperature",
+                                type: "line",
+                                borderColor: "#FF0000",
+                                data: [],
+                                fill: false
+                            }, 
+                            {
+                                label: "Humidity",
+                                type: "bar",
+                                backgroundColor: "#40E0D0",
+                                data: [],
+                            }]
+                        },
+                        options: {
+                            title: {
+                                display: true,
+                                text: 'Average Temperature & Humidity'
+                            },
+                            legend: { display: false }
+                        }
+                    });
+     
+                    socket.on('mqtt_data', function (data) {
+                        var length = chart.data.labels.length
+                        if (length >= 7) {
+                            chart.data.labels.shift(); 
+                            chart.data.datasets[0].data.shift(); 
+                            chart.data.datasets[1].data.shift(); 
+                        }
+                        chart.data.labels.push(data.Time)
+                        chart.data.datasets[0].data.push(data.Temperature)
+                        chart.data.datasets[1].data.push(data.Humidity)
+                        chart.update()
+                    })
+                    </script>
+            </div>
+            <div id="button">
+                 <img src="https://scontent.fhan2-4.fna.fbcdn.net/v/t1.15752-9/59295353_2375558549329583_3253747136164003840_n.jpg?_nc_cat=110&_nc_oc=AQnRTARIIJojGdv_jOHQ2zIziaj1MK6Im_XOSL7BTF6rp9fJEOahqlpNlr9Xvzje5A3y-TydHE3D7fSzfTmtzW8o&_nc_ht=scontent.fhan2-4.fna&oh=fe346efd17863207bd944b99ddb89935&oe=5D65FECE" class="img1" alt="LED">
+                <p>LED <input type="checkbox" name="button" id="LED" onclick="checkLED()" ></br></p>
+                <p>Brightness<input type="range" min="0" max="1023" value="50" id="PWM" oninput="changePWM()"></p>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
